@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./mydemo_files/font-awesome.min.css">
+    <link href="./mydemo_files/css" rel="stylesheet">
+    <!-- Bulma Version 0.7.1-->
+    <link rel="stylesheet" href="./mydemo_files/bulma.min.css" />
+    <link rel="stylesheet" type="text/css" href="/mydemo_files/landing.css">
+   <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+
+<body background="./mydemo_files/word-cloud-nlp-stock-illustrations_csp21130070.jpg">
+    <section class="hero is-info is-fullheight">
+        <div class="hero-head">
+            <nav class="navbar">
+                <div class="container">
+                    <div class="navbar-brand">
+                        
+                    </div>
+                    <div id="navbarMenu" class="navbar-menu">
+                        <div class="navbar-end">
+                                                    </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div id="root" class="hero-body">
+            <div class="container">
+                <div class="column is-6 is-offset-3">
+                    <div class="box">
+
+                        <div class="field">
+                            <p class="control is-expanded">
+                                <input class="input" type="text" placeholder="Enter English text" maxLength="75" v-model.lazy="query" v-on:key.enter="submit">
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="box">
+                        <div class="tags" style="margin:0">
+                            <span v-bind:class="value" v-for="(value, key) in type2color">[[ key ]]</span>
+                        </div>
+                        <hr style="margin: 0.7rem 0;background-color:#EFEFEF;">
+                        <template v-for="r in result">
+                            <span v-bind:class="r.color">[[ r.word ]]</span>&nbsp;
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <script type="text/javascript">
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+        var base_url = window.location.href;
+
+        var vm = new Vue({
+            el: '#root',
+            delimiters: ['[[', ']]'],
+            data: {
+                query: '',
+                result: [],
+                type2color: {
+                    'PER': 'tag is-info',
+                    'LOC': 'tag is-warning',
+                    'ORG': 'tag is-black',
+                    'MISC': 'tag is-success'
+                },
+            },
+            watch: {
+                query : function () {
+                    console.log(this.query);
+                    if (this.query == '') {
+                        this.result = '';
+                        return;
+                    }
+                    var payload = {
+                        query: this.query
+                    };
+					
+					console.log("here"+this.query)
+					
+					axios.get('http://localhost:5000/predict', { params: payload}).then(response => {
+                        var res = []
+                        var d = response.data
+						console.log(d);
+						for (var key in d) {
+							res.push({
+								'word': key,
+								'color': this.type2color[d[key]]
+							});
+						}
+						this.result = res;
+					});
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
